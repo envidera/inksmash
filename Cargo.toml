@@ -1,0 +1,20 @@
+[package]
+name = "inksmash"
+#"inksmin"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+base64 = "0.22.1"
+clap = { version = "4.5.11", features = ["derive"] }
+image = "0.25.2"
+md5 = "0.7.0"
+rayon = "1.10.0"
+regex = "1.10.5"
+webp = "0.3.0"
+
+
+[profile.release]
+debug = false          # Remove depub symbols
+opt-level = 'z'        #  more optmization
+overflow-checks = true

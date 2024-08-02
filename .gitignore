@@ -1,0 +1,7 @@
+/target
+*.svg
+Cargo.lock
+.tmp
+
+.vscode/*
+dist/*
