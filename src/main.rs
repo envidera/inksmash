@@ -5,29 +5,27 @@
 // https://qiita.com/benki/items/6dfd082ab3b03dc6b069
 // https://fasterthanli.me/series/dont-shell-out/part-7
 
-use regex::Regex;
-
 use rayon::prelude::*;
-
+use regex::Regex;
 use std::fs;
 use std::fs::File;
 use std::io;
 use std::io::BufRead;
-
 use std::io::Write;
 
 pub mod args;
-pub mod b64;
 pub mod err;
+
 pub mod id;
 pub mod img;
 pub mod inks;
 
 use crate::inks::*;
 
+const SMASHED_DIR: &str = "compressed";
+
 fn main() {
     let args = args::parse();
-
     let svg = &args.file;
 
     if !svg.ends_with(".svg") {
@@ -37,14 +35,16 @@ fn main() {
         );
     }
 
+    // format names
     let svg_out = &format_filename(svg);
     let svg_out_tmp = &format!("{}.TMP", svg_out);
 
+    // file create
     let mut out =
         File::create(svg_out_tmp).unwrap_or_else(|err| err_exit!("file output create", err));
 
+    // file open Buffer ro read big files
     let file = File::open(svg).unwrap_or_else(|err| err_exit!("file open", err));
-
     let reader = io::BufReader::new(file);
 
     // Load the file contents into memory
@@ -53,7 +53,7 @@ fn main() {
         .collect::<Result<_, _>>()
         .unwrap_or_else(|err| err_exit!("file reader", err));
 
-    // Process the lines in parallel, preserving the order
+    // Process the lines in parallel, without order
     let processed_lines: Vec<(usize, String)> = contents
         .into_iter()
         .enumerate()
@@ -78,11 +78,24 @@ fn main() {
 
     // create smashed dir and move compressed file
     if args.move_completed {
-        const SMASHED_DIR: &str = "smashed";
-        fs::create_dir_all(SMASHED_DIR).unwrap_or_else(|err| err_exit!("create smashed path", err));
+        // create_dir_all do not err/pani if path already exists
+        fs::create_dir_all(SMASHED_DIR)
+            .unwrap_or_else(|err| err_exit!(format!("create {} path", SMASHED_DIR), err));
+
+        // move is done with rename
         fs::rename(svg, format!("{SMASHED_DIR}/{svg}"))
             .unwrap_or_else(|err| err_exit!("rename TMP file", err));
     }
+}
+
+pub fn str_mb_size(s: &str) -> String {
+    let s_size = s.len();
+
+    // Convert size from bytes to megabytes
+    let mb_size = s_size as f64 / (1024.0 * 1024.0);
+
+    // format
+    format!("{:.3}MB", mb_size)
 }
 
 fn format_filename(filename: &str) -> String {
@@ -103,16 +116,6 @@ fn format_filename(filename: &str) -> String {
     }
 
     format!("{}.min.svg", clean_name)
-}
-
-pub fn str_mb_size(s: &str) -> String {
-    let s_size = s.len();
-
-    // Convert size from bytes to megabytes
-    let mb_size = s_size as f64 / (1024.0 * 1024.0);
-
-    // format
-    format!("{:.3}MB", mb_size)
 }
 
 //=====================================================================

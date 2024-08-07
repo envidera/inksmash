@@ -13,6 +13,8 @@ use md5;
 use std::fs;
 use std::fs::File;
 
+const FOLDER: &str = "extracted";
+
 #[derive(PartialEq, Debug)]
 pub enum Img {
     Avif,
@@ -63,8 +65,6 @@ pub fn webp_from_b46_data(args: &Args, data: &[u8]) -> Vec<u8> {
 
     writer
 }
-
-const FOLDER: &str = "extracted";
 
 pub fn save_image_from_b64_data(data: &[u8]) {
     if !Path::new(FOLDER).exists() {
