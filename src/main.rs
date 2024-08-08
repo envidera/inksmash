@@ -23,6 +23,7 @@ pub mod inks;
 use crate::inks::*;
 
 const SMASHED_DIR: &str = "compressed";
+const MIN_EXTENSION: &str = ".min.svg";
 
 fn main() {
     let args = args::parse();
@@ -76,8 +77,9 @@ fn main() {
     // rename tmp to min.svg file
     fs::rename(svg_out_tmp, svg_out).unwrap_or_else(|err| err_exit!("rename TMP file", err));
 
-    // create smashed dir and move compressed file
-    if args.move_completed {
+    // Create compressed folder and move compressed files
+    // Move only non-compressed files to the 'compressed' folder.
+    if args.move_completed && !svg.ends_with(MIN_EXTENSION) {
         // create_dir_all do not err/pani if path already exists
         fs::create_dir_all(SMASHED_DIR)
             .unwrap_or_else(|err| err_exit!(format!("create {} path", SMASHED_DIR), err));
@@ -115,7 +117,7 @@ fn format_filename(filename: &str) -> String {
         clean_name = re.replace(&clean_name, "").to_string();
     }
 
-    format!("{}.min.svg", clean_name)
+    format!("{clean_name}{MIN_EXTENSION}")
 }
 
 //=====================================================================
