@@ -53,10 +53,17 @@ jobs:
         if: startsWith(matrix.os, 'ubuntu')
         run: zip -j ${{ github.event.repository.name }}-linux-latest-x64.zip target/release/${{ github.event.repository.name }}         
      
+
+      - name: Run automatic changelog
+        uses: ./.github/actions/auto-changelog
+        with:
+          file: 'CHANGELOG.md'
+
       - name: Release
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
+          body_path: ./changelog.txt    
           files: |
             *-x64.zip
 
